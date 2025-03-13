@@ -60,10 +60,8 @@ runs:
         formatted_secrets=$(format_json '${{ inputs.secrets }}')
         formatted_vars=$(format_json '${{ inputs.vars }}')
 
-        envs="${formatted_secrets}\\n${formatted_vars}"
-
         # escaping special characters
-        envs=$(printf "%s" "$envs" | jq -Rs .)
+        envs=$(printf "%s\n%s" "$formatted_secrets" "$formatted_vars" | jq -Rs .)
 
         response=$(curl -X 'POST' \
           "${{ inputs.dokploy_url }}/api/application.saveEnvironment" \
