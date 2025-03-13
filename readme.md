@@ -4,19 +4,19 @@ This GitHub Action triggers a deployment on Dokploy.
 
 ## Inputs
 
-### `auth_token`
+### `api_key`
 
-**Required** The Dokploy authentication token.
+**Required** The Dokploy API key. You can create one from `<YOUR DOKPLOY URL>/dashboard/settings/profile`.
 
 ### `application_id`
 
-**Required** The Dokploy application ID.
+**Required** The Dokploy application ID. `<YOUR DOKPLOY URL>/dashboard/project/osLZ6EdGJu8u_IEBcUnGv/services/application/<APPLICATION_ID>`
 
 ### `dokploy_url`
 
 **Required** Dokploy dashboard URL (this should have the Dokploy API accessible at /api) - no trailing backslash.
 
-e.g. `https://server.example.com`
+e.g. `https://dokploy.example.com`
 
 
 ### `service_type`
@@ -25,12 +25,30 @@ e.g. `https://server.example.com`
 
 **Default** `application`
 
+### `deploy`
+
+**Optional** When set to false, deployment isn't triggered. 
+
+**Default** true
+
+### `secrets`
+
+**Optional** Pass `${{ toJSON(secrets) }}` to set environment variables from GitHub secrets.
+
+**Default** null
+
+### `vars`
+
+**Optional** Pass `${{ toJSON(vars) }}` to set environment variables from GitHub variables.
+
+**Default** null
+
 ## Usage
 
 To use this action, include it in your workflow file as follows:
 
 ```yaml
-name: Dokploy Deployment Workflow
+name: Deploy on Dokploy
 
 on: [push]
 
@@ -44,10 +62,11 @@ jobs:
     - name: Dokploy Deployment
       uses: benbristow/dokploy-deploy-action@0.0.1
       with:
-        auth_token: ${{ secrets.DOKPLOY_AUTH_TOKEN }}
+        api_key: ${{ secrets.DOKPLOY_API_KEY }}
         application_id: ${{ secrets.DOKPLOY_APPLICATION_ID }}
         dokploy_url: ${{ secrets.DOKPLOY_URL }}
-        service_type: application
+        secrets: ${{ toJSON(secrets) }}
+        vars: ${{ toJSON(vars) }}
 ```
 
 ## Contributing
