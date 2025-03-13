@@ -51,9 +51,9 @@ runs:
       run: |
         format_json() {
           local secrets="$1"
-          # Properly escape the string for inclusion in Dokploy application.saveEnvironment JSON body
+          # converts the JSON to string for inclusion in Dokploy application.saveEnvironment JSON body
           # Also ignores github_ and GITHUB_ environment variables
-          echo "$secrets" | jq -r 'to_entries | map(select(.key | test("^(github_|GITHUB_)") | not)) | .[] | "\(.key)=\(.value)"' | sed ':a;N;$!ba;s/\n/\\n/g'
+          echo "$secrets" | jq -r 'to_entries | map(select(.key | test("^(github_|GITHUB_)") | not)) | .[] | "\(.key)=\(.value)"'
         }
 
         # Extracting both secrets & variables
@@ -62,12 +62,15 @@ runs:
 
         envs="${formatted_secrets}\\n${formatted_vars}"
 
+        # escaping special characters
+        envs=$(printf "%s" "$envs" | jq -Rs .)
+
         response=$(curl -X 'POST' \
           "${{ inputs.dokploy_url }}/api/application.saveEnvironment" \
           -H 'accept: application/json' \
           -H 'Content-Type: application/json' \
           -H "x-api-key: ${{ inputs.api_key }}" \
-          -d "{\"${{ inputs.service_type }}Id\": \"${{ inputs.application_id }}\", \"env\": \"$envs\" }" \
+          -d "{\"${{ inputs.service_type }}Id\": \"${{ inputs.application_id }}\", \"env\": $envs }" \
           -w "%{http_code}" \
           -o /dev/null \
           -s)
