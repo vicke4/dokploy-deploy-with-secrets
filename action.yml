@@ -16,6 +16,7 @@ inputs:
   service_type:
     description: "Type of service (application,compose)"
     required: false
+    default: "application"
   deploy:
     description: "Boolean flag to trigger deployment"
     required: false
