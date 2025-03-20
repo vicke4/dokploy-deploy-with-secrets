@@ -60,7 +60,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Dokploy Deployment
-      uses: benbristow/dokploy-deploy-action@0.0.1
+      uses: vicke4/dokploy-deploy-with-secrets@v0.1.2
       with:
         api_key: ${{ secrets.DOKPLOY_API_KEY }}
         application_id: ${{ secrets.DOKPLOY_APPLICATION_ID }}
