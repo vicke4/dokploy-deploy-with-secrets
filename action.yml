@@ -22,13 +22,25 @@ inputs:
     required: false
     default: true
   secrets:
-    description: "secrets for the application"
+    description: "Secrets for the application"
     required: false
     default: null
   vars:
-    description: "variables for the application"
+    description: "Variables for the application"
     required: false
     default: null
+  buildArgs:
+    description: "Build arguments"
+    required: false
+    default: null
+  buildSecrets:
+    description: "Build secrets"
+    required: false
+    default: null
+  createEnvFile:
+    description: "Whether to create an env file or not"
+    required: false
+    default: false
 runs:
   using: "composite"
   steps:
@@ -56,19 +68,23 @@ runs:
           echo "$secrets" | jq -r 'to_entries | map(select(.key | test("^(github_|GITHUB_)") | not)) | .[] | "\(.key)=\(.value)"'
         }
 
-        # Extracting both secrets & variables
+        # Extracting both arguments, secrets & variables
         formatted_secrets=$(format_json '${{ inputs.secrets }}')
         formatted_vars=$(format_json '${{ inputs.vars }}')
+        formatted_build_args=$(format_json '${{ inputs.buildArgs }}')
+        formatted_build_secrets=$(format_json '${{ inputs.buildSecrets }}')
 
         # escaping special characters
         envs=$(printf "%s\n%s" "$formatted_secrets" "$formatted_vars" | jq -Rs .)
+        build_args=$(printf "%s" "$formatted_build_args" | jq -Rs .)
+        build_secrets=$(printf "%s" "$formatted_build_secrets" | jq -Rs .)
 
         response=$(curl -X 'POST' \
           "${{ inputs.dokploy_url }}/api/application.saveEnvironment" \
           -H 'accept: application/json' \
           -H 'Content-Type: application/json' \
           -H "x-api-key: ${{ inputs.api_key }}" \
-          -d "{\"${{ inputs.service_type }}Id\": \"${{ inputs.application_id }}\", \"env\": $envs }" \
+          -d "{\"${{ inputs.service_type }}Id\": \"${{ inputs.application_id }}\", \"env\": $envs, \"buildArgs\": $build_args, \"buildSecrets\": $build_secrets, \"createEnvFile\": ${{ inputs.createEnvFile }} }" \
           -w "%{http_code}" \
           -o /dev/null \
           -s)
